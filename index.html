@@ -367,7 +367,7 @@
     <div id="target-image"></div>
     <button id="button" onclick="startShooting()">Encender</button>
     <button id="restart" onclick="restartShooting()">Reiniciar</button>
-    <div class="timer" id="timer">Tiempo restante: <span id="timeLeft">2:00</span></div>
+    <div class="timer" id="timer">Tiempo restante: <span id="timeLeft">08:00:00</span></div>
 
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
@@ -398,15 +398,16 @@
             const timerElement = document.getElementById('timeLeft');
             const now = Date.now();
             const tiempoTranscurrido = Math.floor((now - timestamp) / 1000); // Tiempo transcurrido en segundos
-            const tiempoRestante = Math.max(0, 120 - tiempoTranscurrido); // 120 segundos = 2 minutos
-            const minutos = Math.floor(tiempoRestante / 60);
+            const tiempoRestante = Math.max(0, 28800 - tiempoTranscurrido); // 8 horas = 28800 segundos
+            const horas = Math.floor(tiempoRestante / 3600);
+            const minutos = Math.floor((tiempoRestante % 3600) / 60);
             const segundos = tiempoRestante % 60;
-            timerElement.textContent = `${minutos}:${segundos < 10 ? '0' : ''}${segundos}`;
+            timerElement.textContent = `${horas.toString().padStart(2, '0')}:${minutos.toString().padStart(2, '0')}:${segundos.toString().padStart(2, '0')}`;
 
             if (tiempoRestante <= 0) {
                 clearInterval(temporizadorInterval);
                 document.getElementById('timer').style.display = 'none';
-                alert('⏰ El tiempo ha expirado. Los datos han sido eliminados.');
+                alert('⏰ El tiempo ha expirado. Los datos han sido eliminados después de 8 horas.');
                 window.location.reload();
             }
         }
