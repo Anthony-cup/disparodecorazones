@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pistola de Corazones</title>
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
     <style>
@@ -23,6 +24,7 @@
             transform: translateY(-50%);
             width: 240px;
             height: 140px;
+            display: none;
         }
         .cabin {
             width: 80px;
@@ -148,6 +150,7 @@
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(255, 215, 0, 0.3);
             transition: background 0.3s ease, transform 0.3s ease;
+            display: none;
         }
         #button:hover, #restart:hover {
             background: linear-gradient(to bottom, #A00000, #600000);
@@ -160,7 +163,6 @@
         #restart {
             left: 150px;
             top: calc(50% + 90px);
-            display: none;
         }
         .heart-piece {
             position: absolute;
@@ -178,7 +180,6 @@
             position: absolute;
             width: 200px;
             height: 200px;
-            background-image: url('img/2.png');
             background-size: contain;
             background-repeat: no-repeat;
             background-position: center;
@@ -186,6 +187,7 @@
             transition: opacity 0.3s ease;
             border: none;
             background-color: transparent;
+            display: none;
         }
         #new-image {
             position: absolute;
@@ -251,9 +253,102 @@
             opacity: 1;
             transform: translate(-50%, 0);
         }
+        .input-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 400px;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+            padding: 20px;
+            text-align: center;
+            font-family: 'Dancing Script', cursive;
+        }
+        .input-panel header {
+            padding: 15px;
+            background: linear-gradient(45deg, #ff0057, #ff4e7a);
+            color: white;
+            font-size: 1.5em;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+        }
+        .input-panel p {
+            color: #333;
+            font-size: 1.2em;
+            margin: 15px 0;
+            font-family: 'Arial', sans-serif;
+        }
+        .input-panel input {
+            width: calc(100% - 24px);
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 12px;
+            border: none;
+            background: #f0f0f0;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
+            font-size: 1em;
+        }
+        .input-panel input:focus {
+            outline: none;
+            box-shadow: 0 0 8px rgba(255, 0, 87, 0.5);
+        }
+        .input-panel button {
+            padding: 12px 24px;
+            font-size: 16px;
+            font-family: 'Dancing Script', cursive;
+            font-weight: 700;
+            cursor: pointer;
+            background: linear-gradient(45deg, #ff0057, #ff4e7a);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            transition: background 0.3s ease, transform 0.3s ease;
+        }
+        .input-panel button:hover {
+            background: linear-gradient(45deg, #e0004d, #e83765);
+            transform: scale(1.05);
+        }
+        .timer {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 10px 15px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            font-size: 0.9em;
+            color: #333;
+            font-family: 'Arial', sans-serif;
+            z-index: 1000;
+            display: none;
+        }
+        .timer span {
+            color: #ff0057;
+            font-weight: bold;
+        }
+        @media (max-width: 600px) {
+            .input-panel {
+                width: 95%;
+            }
+            .timer {
+                font-size: 0.8em;
+                padding: 8px 12px;
+            }
+        }
     </style>
 </head>
 <body>
+    <div class="input-panel" id="inputPanel">
+        <header>Ingresa tu ID</header>
+        <p>Ingresa el usuario </p>
+        <input type="text" id="usuarioInput" placeholder="Ej: miusuario123">
+        <button onclick="verificarUsuario()">Entrar</button>
+    </div>
     <div id="pistol">
         <div class="cabin">
             <div class="cabin-window"></div>
@@ -272,8 +367,100 @@
     <div id="target-image"></div>
     <button id="button" onclick="startShooting()">Encender</button>
     <button id="restart" onclick="restartShooting()">Reiniciar</button>
+    <div class="timer" id="timer">Tiempo restante: <span id="timeLeft">2:00</span></div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 
     <script>
+        // Configuración de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyAvXX3WmnXH36z0JPh3rXul0NFnslCQLlI",
+            authDomain: "ling-personaizado.firebaseapp.com",
+            projectId: "ling-personaizado",
+            storageBucket: "ling-personaizado.appspot.com",
+            messagingSenderId: "87311498492",
+            appId: "1:87311498492:web:d6d42825a1ab57c918ab79",
+            measurementId: "G-DHQHGWYC6S",
+            databaseURL: "https://ling-personaizado-default-rtdb.firebaseio.com/"
+        };
+
+        // Inicializar Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Variables para almacenar datos de Firebase
+        let nombreUsuario = '';
+        let imagenUrl = '';
+
+        // Función para actualizar el temporizador
+        function actualizarTemporizador(timestamp) {
+            const timerElement = document.getElementById('timeLeft');
+            const now = Date.now();
+            const tiempoTranscurrido = Math.floor((now - timestamp) / 1000); // Tiempo transcurrido en segundos
+            const tiempoRestante = Math.max(0, 120 - tiempoTranscurrido); // 120 segundos = 2 minutos
+            const minutos = Math.floor(tiempoRestante / 60);
+            const segundos = tiempoRestante % 60;
+            timerElement.textContent = `${minutos}:${segundos < 10 ? '0' : ''}${segundos}`;
+
+            if (tiempoRestante <= 0) {
+                clearInterval(temporizadorInterval);
+                document.getElementById('timer').style.display = 'none';
+                alert('⏰ El tiempo ha expirado. Los datos han sido eliminados.');
+                window.location.reload();
+            }
+        }
+
+        let temporizadorInterval;
+
+        // Verificar usuario al cargar la plantilla
+        async function verificarUsuario() {
+            const usuario = document.getElementById('usuarioInput').value.trim().toLowerCase();
+            if (!usuario) {
+                alert("❌ Debes ingresar un usuario único.");
+                return;
+            }
+
+            try {
+                const snapshot = await database.ref("usuarios/" + usuario).once("value");
+                if (snapshot.exists()) {
+                    const datos = snapshot.val();
+                    nombreUsuario = datos.nombre;
+                    imagenUrl = datos.imagen;
+                    const timestamp = datos.timestamp;
+
+                    // Posicionar la imagen inicial (2.png) arriba del corazón
+                    const heartSize = 300;
+                    const centerX = window.innerWidth / 2 - heartSize / 2;
+                    const centerY = window.innerHeight / 2 - heartSize / 2;
+                    const targetWidth = 200;
+                    const targetHeight = 200;
+                    const targetOffset = 50;
+                    const targetX = centerX + heartSize / 2;
+                    const targetY = centerY - targetHeight - targetOffset;
+
+                    const targetImage = document.getElementById('target-image');
+                    targetImage.style.left = `${targetX - targetWidth / 2}px`;
+                    targetImage.style.top = `${targetY}px`;
+                    targetImage.style.backgroundImage = `url('img/2.png')`;
+                    targetImage.style.display = 'block';
+                    targetImage.style.opacity = '1';
+
+                    document.getElementById('inputPanel').style.display = 'none';
+                    document.getElementById('pistol').style.display = 'block';
+                    document.getElementById('button').style.display = 'block';
+                    document.getElementById('timer').style.display = 'block';
+                    actualizarTemporizador(timestamp);
+                    temporizadorInterval = setInterval(() => actualizarTemporizador(timestamp), 1000);
+                } else {
+                    alert("❌ El usuario no existe en la base de datos.");
+                }
+            } catch (error) {
+                console.error("Error al consultar la base de datos:", error);
+                alert("❌ Error al conectar con la base de datos. Revisa la consola.");
+            }
+        }
+
         // Reducir puntos para rendimiento
         const numPoints = 100;
         const positions = [];
@@ -327,7 +514,7 @@
             const barrelBaseX = barrelRect.left + barrelRect.width;
             const barrelBaseY = barrelRect.top + barrelRect.height / 2;
 
-            // Posicionar la imagen objetivo arriba del corazón
+            // Asegurar que la imagen inicial esté en la posición correcta
             const targetImage = document.getElementById('target-image');
             targetImage.style.left = `${targetX - targetWidth / 2}px`;
             targetImage.style.top = `${targetY}px`;
@@ -389,7 +576,7 @@
                                     newImage.id = 'new-image';
                                     newImage.style.left = `${targetX - targetWidth / 2}px`;
                                     newImage.style.top = `${targetY}px`;
-                                    newImage.style.backgroundImage = `url('https://i.pinimg.com/236x/5a/13/46/5a13462493a3c3fcc4214a0bf98aa002.jpg')`;
+                                    newImage.style.backgroundImage = `url('${imagenUrl}')`;
                                     document.body.appendChild(newImage);
                                     setTimeout(() => {
                                         newImage.style.opacity = '1';
@@ -445,7 +632,7 @@
 
                                         let message = document.createElement('div');
                                         message.classList.add('message');
-                                        message.textContent = 'I LOVE YOU MARIA 💕🥰';
+                                        message.textContent = `I LOVE YOU ${nombreUsuario} 💕🥰`;
                                         message.style.left = `${secondTargetX}px`;
                                         message.style.top = `${secondTargetY}px`;
                                         document.body.appendChild(message);
